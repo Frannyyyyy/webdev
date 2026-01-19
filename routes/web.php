@@ -15,6 +15,7 @@ use App\Http\Controllers\Manager\AgentController;
 use App\Http\Controllers\Manager\TicketController as ManagerTicketController;
 use App\Http\Controllers\Admin\AdminLoginController;
 use App\Http\Controllers\Admin\AdminController;
+
 /*
 |--------------------------------------------------------------------------
 | 1. PUBLIC LANDING
@@ -154,19 +155,51 @@ Route::middleware('auth')->prefix('manager')->group(function () {
 | 8. ADMIN ROUTES
 |--------------------------------------------------------------------------
 */
+/*
+|--------------------------------------------------------------------------
+| ADMIN ROUTES
+|--------------------------------------------------------------------------
+*/
 Route::prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', [\App\Http\Controllers\Admin\AdminController::class, 'dashboard'])->name('dashboard');
+    // Login routes (PUBLIC)
+    Route::get('/login', [AdminLoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [AdminLoginController::class, 'login'])->name('login.submit');
+    Route::post('/logout', [AdminLoginController::class, 'logout'])->name('logout');
     
+    // Dashboard (PROTECTED - SIMPLE VERSION)
+    Route::get('/dashboard', function () {
+        // Simple check - no auth() helper
+        if (!\Illuminate\Support\Facades\Auth::check()) {
+            return redirect()->route('admin.login');
+        }
+        
+        $user = \Illuminate\Support\Facades\Auth::user();
+        if ($user->role !== 'admin') {
+            abort(403, 'Admin access required');
+        }
+        
+        return view('admin.dashboard');
+    })->name('dashboard');
+    
+    // Users Management (PROTECTED)
     Route::get('/users', function () {
+        if (!\Illuminate\Support\Facades\Auth::check()) {
+            return redirect()->route('admin.login');
+        }
+        
+        $user = \Illuminate\Support\Facades\Auth::user();
+        if ($user->role !== 'admin') {
+            abort(403);
+        }
+        
         $tab = request('tab', 'all');
         $users = \App\Models\User::all();
         return view('admin.users', ['tab' => $tab, 'users' => $users]);
     })->name('users');
     
-    // AJAX UPDATE ROUTE (use different name to avoid conflict)
+    // AJAX UPDATE ROUTE
     Route::post('/users/{id}/update-ajax', function ($id) {
         $user = \App\Models\User::findOrFail($id);
-        
         $user->update([
             'name' => request('name'),
             'email' => request('email'),
@@ -174,20 +207,16 @@ Route::prefix('admin')->name('admin.')->group(function () {
             'role' => request('role'),
             'status' => request('status')
         ]);
-        
         return response()->json(['success' => true, 'message' => 'User updated successfully']);
     })->name('users.update.ajax');
     
     // AJAX RESET PASSWORD ROUTE
     Route::post('/users/{id}/reset-password-ajax', function ($id) {
         $user = \App\Models\User::findOrFail($id);
-        
-        // Generate random password
         $newPassword = \Illuminate\Support\Str::random(8);
         $user->update([
             'password' => \Illuminate\Support\Facades\Hash::make($newPassword)
         ]);
-        
         return response()->json([
             'success' => true, 
             'message' => 'Password reset successful',
@@ -195,16 +224,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         ]);
     })->name('users.reset-password.ajax');
 });
-
-
-// Admin Login Routes (NO middleware - PUBLIC)
-Route::prefix('admin')->name('admin.')->group(function () {
-    Route::get('/login', [AdminLoginController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [AdminLoginController::class, 'login'])->name('login.submit');
-    Route::post('/logout', [AdminLoginController::class, 'logout'])->name('logout');
-});
-
-
 /*
 |--------------------------------------------------------------------------
 | 9. ALUMNI ROUTES
