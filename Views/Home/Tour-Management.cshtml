@@ -135,7 +135,7 @@
                                             '@base64Bookings'
                                         )">View</button>
                                         
-                                        <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="openEditModal('@t.Id', '@JavaScriptEncoder.Default.Encode(t.TourName)', '@JavaScriptEncoder.Default.Encode(t.Destination)', '@t.DepartureDate.ToString("yyyy-MM-ddTHH:mm")', '@t.ReturnDate.ToString("yyyy-MM-ddTHH:mm")', '@t.BasePrice', '@t.TotalCapacity', '@t.Status', '@JavaScriptEncoder.Default.Encode(t.ItineraryHighlights ?? "")')">Edit</button>
+                                        <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="openEditModal('@t.Id', '@JavaScriptEncoder.Default.Encode(t.TourName)', '@JavaScriptEncoder.Default.Encode(t.Destination)', '@t.DepartureDate.ToString("yyyy-MM-ddTHH:mm")', '@t.ReturnDate.ToString("yyyy-MM-ddTHH:mm")', '@t.BasePrice.ToString("N2", System.Globalization.CultureInfo.InvariantCulture)', '@t.TotalCapacity', '@t.Status', '@JavaScriptEncoder.Default.Encode(t.ItineraryHighlights ?? "")')">Edit</button>
                                         
                                         <!-- Boost Button -->
                                         <form method="POST" action="/Tour/ToggleBoost" style="margin: 0;">

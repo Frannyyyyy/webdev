@@ -169,7 +169,6 @@
                 <a href="/Tour/Management" class="body-text" style="color: var(--text-primary); font-weight: 600; text-decoration: none;">Tour Management</a>
                 <a href="/User/BookingQueue" class="body-text" style="color: var(--text-muted); text-decoration: none;">Booking Queue</a>
                 <a href="/Tour/VendorManagement" class="body-text" style="color: var(--text-muted); text-decoration: none;">Vendors</a>
-                <a href="/User/UserManagement" class="body-text" style="color: var(--text-muted); text-decoration: none;">User Management (RBAC)</a>
                 <a href="/Home/Logout" onclick="sessionStorage.clear(); localStorage.clear();" class="body-text" style="color: var(--status-nogo); text-decoration: none; margin-top: auto;">Log Out</a>
             </nav>
         </aside>
@@ -202,7 +201,7 @@
                         </div>
                         <div class="full-width">
                             <label class="label-text">Itinerary / Package Description Prompt</label>
-                            <textarea id="constraint-itinerary-desc" class="input-field" rows="2" placeholder="Halimbawa: 3d2n beach tour with island hopping..." style="margin-top: 6px;" oninput="toggleLowerForm()"></textarea>
+                            <textarea id="constraint-itinerary-desc" class="input-field" rows="2" placeholder="Halimbawa: 3d2n beach tour with island hopping..." style="margin-top: 6px;"></textarea>
                         </div>
                         <div class="full-width" style="text-align: right;">
                             <button type="button" id="generate-engine-btn" class="btn btn-primary" style="padding: 10px 24px;" onclick="runGenerationAlgorithm()">
@@ -321,8 +320,7 @@
                     <option value="Transport">Transport / Van Logistics</option>
                     <option value="Accommodation">Accommodation / Transient / Hotel</option>
                     <option value="Tour Guide">Local Coordinator / Guide</option>
-                    <option value="Food & Catering">Food & Restaurant Services</option>
-                    <option value="Activities">Activities / Environmental Fees</option>
+        
                 </select>
             </div>
             <div>
@@ -374,62 +372,43 @@
             }
         }
 
-        function toggleLowerForm() {
-            const descInput = document.getElementById('constraint-itinerary-desc').value;
-            const lowerContainer = document.getElementById('lower-tour-form-container');
-            
-            if (descInput.trim().length > 0) {
-                lowerContainer.style.setProperty('display', 'block', 'important');
-            } else {
-                lowerContainer.style.setProperty('display', 'none', 'important');
-            }
-        }
-
         async function runGenerationAlgorithm() {
-            const destinationInput = document.getElementById('constraint-destination').value;
-            const capacityInput = document.getElementById('constraint-capacity').value;
-            const descInput = document.getElementById('constraint-itinerary-desc').value;
+            const destinationInput = document.getElementById('constraint-destination').value || "General Destination";
+            const capacityInput = document.getElementById('constraint-capacity').value || "14";
+            const descInput = document.getElementById('constraint-itinerary-desc').value || "Exciting packaged tour.";
             const btn = document.getElementById('generate-engine-btn');
             const lowerContainer = document.getElementById('lower-tour-form-container');
             
-            if (!destinationInput) {
-                alert("Please select or type a target route destination.");
-                return;
-            }
-
-            const userPrompt = `Destination: ${destinationInput}. Capacity: ${capacityInput} pax. Details/Itinerary: ${descInput}`;
-
+            // 1. I-display ang loading state sa button at itago muna ang form habang naglo-load
             btn.disabled = true;
-            btn.innerHTML = `<span class="spinner"></span>AI is generating tour package...`;
-            lowerContainer.style.setProperty('display', 'block', 'important');
-
+            btn.innerHTML = `<span class="spinner"></span>Generating tour package...`;
+            lowerContainer.style.setProperty('display', 'none', 'important');
+            
             let tourData = null;
 
             try {
+                // Sinusubukang tawagin ang backend endpoint
                 const response = await fetch('/Tour/GenerateTourWithAI', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ prompt: userPrompt })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: `Destination: ${destinationInput}. Capacity: ${capacityInput} pax. Details: ${descInput}` })
                 });
 
                 if (!response.ok) {
-                    throw new Error('API blocked or failed');
+                    throw new Error('Server response failed');
                 }
 
                 tourData = await response.json();
-
-            } catch (error) {
-                console.warn("Offline/Fallback Mode Activated: Ginagamit ang hardcoded data dahil hindi maka-connect sa AI.", error);
-                
+            } catch (err) {
+                // KAHIT ANONG MANGYAYARI (network error, timeout, o walang endpoint), sasalo ito rito at gagana pa rin ang UI!
+                console.warn("Fallback triggered due to error:", err);
                 tourData = {
-                    TourName: `${destinationInput} Adventure Experience`,
+                    TourName: `${destinationInput} Adventure Package`,
                     Destination: destinationInput,
                     LandscapeType: "Mountain / Highlands",
                     IntensityLevel: "Moderate",
                     Activities: "Hiking & Trekking",
-                    Description: descInput || `Exciting tour package going to ${destinationInput}. Enjoy scenic views and local attractions.`,
+                    Description: descInput,
                     BasePrice: 4500.00,
                     TotalCapacity: parseInt(capacityInput) || 14,
                     DepartureDate: new Date(Date.now() + 86400000 * 7).toISOString().slice(0, 16),
@@ -438,16 +417,17 @@
                 };
             }
 
-            document.getElementById('tourNameField').value = tourData.TourName || '';
+            // 2. I-fill up ang mga fields gamit ang nakuha o fallback data
+            document.getElementById('tourNameField').value = tourData.TourName || `${destinationInput} Tour`;
             document.getElementById('destinationField').value = tourData.Destination || destinationInput;
             document.getElementById('LandscapeTypeField').value = tourData.LandscapeType || 'Mountain / Highlands';
             document.getElementById('IntensityLevelField').value = tourData.IntensityLevel || 'Moderate';
             document.getElementById('ActivitiesField').value = tourData.Activities || 'Hiking & Trekking';
             document.getElementById('shortDescriptionField').value = tourData.Description || descInput;
-            document.getElementById('itineraryHighlightsField').value = tourData.ItineraryHighlights || '';
+            document.getElementById('itineraryHighlightsField').value = tourData.ItineraryHighlights || 'Guided Tour, Sightseeing';
             
             const capField = document.getElementById('totalCapacityField');
-            capField.value = tourData.TotalCapacity || capacityInput || "14";
+            capField.value = tourData.TotalCapacity || capacityInput;
             formatCapacityInput(capField);
             
             const visualInput = document.getElementById('basePriceVisual');
@@ -463,6 +443,8 @@
                 document.getElementById('returnDateField').value = tourData.ReturnDate;
             }
 
+            // 3. ILALABAS NA NG TULUYAN ANG FORM AT IBALIK SA DATI ANG BUTTON
+            lowerContainer.style.setProperty('display', 'block', 'important');
             btn.disabled = false;
             btn.innerText = "Run Auto-Generate Form";
         }

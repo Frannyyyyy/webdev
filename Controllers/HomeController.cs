@@ -47,21 +47,21 @@ public class HomeController : Controller
             return View();
         }
 
-        // 1. Suriin kung Pending ang account
+        
         if (user.Status == "Pending")
         {
             ViewBag.ErrorMessage = "Wait for admin approval. Try logging in later.";
             return View();
         }
 
-        // 2. Suriin kung Rejected ang account
+        
         if (user.Status == "Rejected")
         {
             ViewBag.ErrorMessage = "Your account has been rejected by the admin.";
             return View();
         }
         
-        // 3. Kung Active na (o walang status na nakalagay), ituloy ang pagpasok ayon sa role
+        
         string userRole = user.Role?.ToLower() ?? "operator";
 
         return userRole switch
@@ -115,7 +115,7 @@ public class HomeController : Controller
             Age = age,
             Password = password,
             Role = role.ToLower().Trim(),
-            Status = "Pending" // Naka-set sa Pending para hintayin muna ang approval ng admin
+            Status = "Pending"
         };
 
         _context.Users.Add(newUser);

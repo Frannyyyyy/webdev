@@ -45,18 +45,18 @@ public async Task<IActionResult> RequestRefundFromQueue(int bookingId, string re
     var booking = await _context.Set<Booking>().Include(b => b.Tour).FirstOrDefaultAsync(x => x.Id == bookingId);
     if (booking == null) return Json(new { success = false, message = "Booking not found." });
     booking.IsArchived = true;
-    // Kung galing sa Pending at nirefund/tinanggal, gawing "Rejected"
+  
     if (booking.Status == "Pending Validation")
     {
         booking.Status = "Rejected";
     }
-    // Kung galing sa Approved at nirefund, gawing "Validated" ayon sa iyong instruction
+   
     else if (booking.Status == "Approved")
     {
         booking.Status = "Validated";
         if (booking.Tour != null)
         {
-            // Ibalik ang slots dahil na-approve na ito dati at ngayon ay nirefund na
+          
             booking.Tour.SlotsFilled = Math.Max(0, booking.Tour.SlotsFilled - booking.Slots);
         }
     }

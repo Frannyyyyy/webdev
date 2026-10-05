@@ -42,7 +42,7 @@
         .bg-rejected { background-color: rgba(239, 68, 68, 0.2); color: var(--status-nogo); }
         .input-field { background-color: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px 14px; border-radius: 6px; font-size: 14px; width: 100%; box-sizing: border-box; margin-top: 6px; }
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-card { background-color: var(--bg-secondary); padding: 32px; border-radius: 12px; border: 1px solid var(--border-color); width: 100%; max-width: 400px; }
+        .modal-card { background-color: var(--bg-secondary); padding: 32px; border-radius: 12px; border: 1px solid var(--border-color); width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; }
         .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
         .details-group { background-color: var(--bg-primary); padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); }
         .details-val { font-size: 14px; font-weight: 500; margin-top: 4px; color: var(--text-primary); }
@@ -55,7 +55,6 @@
                 <span class="logo-text">J-Hub <span style="font-size: 14px; font-weight: 500; color: var(--text-muted); vertical-align: middle; margin-left: 4px;">Admin</span></span>
             </div>
             <nav style="display: flex; flex-direction: column; gap: 16px; height: 100%;">
-             
                 <a href="/User/UserManagement" class="body-text" style="color: var(--text-primary); font-weight: 600; text-decoration: none;">Admin Access Control</a>
                 <a href="/Home/Login" class="body-text" style="color: var(--status-nogo); text-decoration: none; font-weight: 500; margin-top: auto;">Log Out</a>
             </nav>
@@ -66,7 +65,6 @@
                 <h1 class="heading-xl">Admin Access Control</h1>
             </div>
 
-            <!-- Malinis at Eksaktong Pag-filter batay sa Status / IsApproved / IsRejected -->
             @{
                 var pendingUsers = Model?.Where(u => u.Status == "Pending" || (!u.IsApproved && !u.IsRejected && u.Status != "Active" && u.Status != "Rejected")).ToList() ?? new List<_UPDATED__FrontEnd_Capstone.Models.User>();
                 var activeUsers = Model?.Where(u => u.Status == "Active" || u.IsApproved).ToList() ?? new List<_UPDATED__FrontEnd_Capstone.Models.User>();
@@ -112,7 +110,7 @@
                                             <button type="submit" class="btn btn-danger" style="padding: 6px 10px; font-size: 12px;">Reject</button>
                                         </form>
 
-                                        <button class="btn btn-secondary" style="padding: 6px 10px; font-size: 12px;" onclick="openEditModal(@user.Id, '@JavaScriptEncoder.Default.Encode(user.FullName ?? "")', '@JavaScriptEncoder.Default.Encode(user.Email ?? "")', '@JavaScriptEncoder.Default.Encode(user.Role ?? "")', '@JavaScriptEncoder.Default.Encode(user.Password ?? "")')">Edit</button>
+                                        <button class="btn btn-secondary" style="padding: 6px 10px; font-size: 12px;" onclick="openEditModal(@user.Id, '@JavaScriptEncoder.Default.Encode(user.FullName ?? "")', '@JavaScriptEncoder.Default.Encode(user.Email ?? "")', '@JavaScriptEncoder.Default.Encode(user.Role ?? "")', '@JavaScriptEncoder.Default.Encode(user.Password ?? "")', '@JavaScriptEncoder.Default.Encode(user.PhoneNumber ?? "")')">Edit</button>
                                         
                                         <form action="/User/DeleteUser" method="POST" style="display:inline; margin: 0;" onsubmit="return confirm('Are you sure you want to remove this user?');">
                                             <input type="hidden" name="id" value="@user.Id">
@@ -161,7 +159,7 @@
                                     <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
                                         <button class="btn btn-info" style="padding: 6px 10px; font-size: 12px;" onclick="openDetailsModal('@JavaScriptEncoder.Default.Encode(user.FullName ?? "")', '@JavaScriptEncoder.Default.Encode(user.Email ?? "")', '@JavaScriptEncoder.Default.Encode(user.PhoneNumber ?? "")', '@JavaScriptEncoder.Default.Encode(user.Sex ?? "")', @user.Age, '@JavaScriptEncoder.Default.Encode(user.Role ?? "")', 'Active', '@JavaScriptEncoder.Default.Encode(user.Password ?? "")')">View</button>
                                         
-                                        <button class="btn btn-secondary" style="padding: 6px 10px; font-size: 12px;" onclick="openEditModal(@user.Id, '@JavaScriptEncoder.Default.Encode(user.FullName ?? "")', '@JavaScriptEncoder.Default.Encode(user.Email ?? "")', '@JavaScriptEncoder.Default.Encode(user.Role ?? "")', '@JavaScriptEncoder.Default.Encode(user.Password ?? "")')">Edit</button>
+                                        <button class="btn btn-secondary" style="padding: 6px 10px; font-size: 12px;" onclick="openEditModal(@user.Id, '@JavaScriptEncoder.Default.Encode(user.FullName ?? "")', '@JavaScriptEncoder.Default.Encode(user.Email ?? "")', '@JavaScriptEncoder.Default.Encode(user.Role ?? "")', '@JavaScriptEncoder.Default.Encode(user.Password ?? "")', '@JavaScriptEncoder.Default.Encode(user.PhoneNumber ?? "")')">Edit</button>
                                         
                                         <form action="/User/DeleteUser" method="POST" style="display:inline; margin: 0;" onsubmit="return confirm('Are you sure you want to remove this active user?');">
                                             <input type="hidden" name="id" value="@user.Id">
@@ -210,9 +208,8 @@
                                     <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
                                         <button class="btn btn-info" style="padding: 6px 10px; font-size: 12px;" onclick="openDetailsModal('@JavaScriptEncoder.Default.Encode(user.FullName ?? "")', '@JavaScriptEncoder.Default.Encode(user.Email ?? "")', '@JavaScriptEncoder.Default.Encode(user.PhoneNumber ?? "")', '@JavaScriptEncoder.Default.Encode(user.Sex ?? "")', @user.Age, '@JavaScriptEncoder.Default.Encode(user.Role ?? "")', 'Rejected', '@JavaScriptEncoder.Default.Encode(user.Password ?? "")')">View</button>
                                         
-                                        <button class="btn btn-secondary" style="padding: 6px 10px; font-size: 12px;" onclick="openEditModal(@user.Id, '@JavaScriptEncoder.Default.Encode(user.FullName ?? "")', '@JavaScriptEncoder.Default.Encode(user.Email ?? "")', '@JavaScriptEncoder.Default.Encode(user.Role ?? "")', '@JavaScriptEncoder.Default.Encode(user.Password ?? "")')">Edit</button>
+                                        <button class="btn btn-secondary" style="padding: 6px 10px; font-size: 12px;" onclick="openEditModal(@user.Id, '@JavaScriptEncoder.Default.Encode(user.FullName ?? "")', '@JavaScriptEncoder.Default.Encode(user.Email ?? "")', '@JavaScriptEncoder.Default.Encode(user.Role ?? "")', '@JavaScriptEncoder.Default.Encode(user.Password ?? "")', '@JavaScriptEncoder.Default.Encode(user.PhoneNumber ?? "")')">Edit</button>
                                         
-                                        <!-- Delete Button para sa Rejected Section -->
                                         <form action="/User/DeleteUser" method="POST" style="display:inline; margin: 0;" onsubmit="return confirm('Are you sure you want to permanently delete this rejected user?');">
                                             <input type="hidden" name="id" value="@user.Id">
                                             <button type="submit" class="btn btn-danger" style="padding: 6px 10px; font-size: 12px;">Delete</button>
@@ -230,7 +227,6 @@
                     }
                 </tbody>
             </table>
-
         </main>
     </div>
 
@@ -278,25 +274,29 @@
         <div class="modal-card">
             <h2 class="heading-md" style="margin-bottom: 16px;">Edit User</h2>
             <form action="/User/EditUser" method="POST">
-                <input type="hidden" name="id" id="edit-id">
+                <input type="hidden" name="Id" id="edit-id">
+                
                 <div style="margin-bottom: 12px;">
                     <label class="label-text">FULL NAME</label>
-                    <input type="text" name="fullName" id="edit-name" class="input-field" required placeholder="Full Name">
+                    <input type="text" name="FullName" id="edit-name" class="input-field" required>
                 </div>
                 <div style="margin-bottom: 12px;">
                     <label class="label-text">EMAIL</label>
-                    <input type="email" name="email" id="edit-email" class="input-field" required placeholder="Email">
+                    <input type="email" name="Email" id="edit-email" class="input-field" required>
                 </div>
                 <div style="margin-bottom: 12px;">
                     <label class="label-text">PASSWORD</label>
-                    <input type="text" name="password" id="edit-password" class="input-field" required placeholder="Password">
+                    <input type="text" name="Password" id="edit-password" class="input-field" required>
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <label class="label-text">PHONE NUMBER</label>
+                    <input type="text" name="PhoneNumber" id="edit-phone" class="input-field" required>
                 </div>
                 <div style="margin-bottom: 12px;">
                     <label class="label-text">ROLE</label>
-                    <select name="role" id="edit-role" class="input-field" required>
-                        <option value="" disabled selected>Select Role...</option>
-                        <option value="admin">admin</option>
-                        <option value="operator">operator</option>
+                    <select name="Role" id="edit-role" class="input-field" required>
+                        <option value="Admin">admin</option>
+                        <option value="Operator">operator</option>
                     </select>
                 </div>
 
@@ -319,18 +319,19 @@
             const statusEl = document.getElementById('view-status');
             const decodedStatus = decodeURIComponent(status);
             statusEl.innerText = decodedStatus;
-            
             statusEl.className = "badge " + (decodedStatus === "Pending" ? "bg-pending" : decodedStatus === "Rejected" ? "bg-rejected" : "bg-active");
             
             document.getElementById('view-modal').style.display = 'flex';
         }
 
-        function openEditModal(id, name, email, role, password) {
+        function openEditModal(id, name, email, role, password, phone) {
             document.getElementById('edit-id').value = id;
             document.getElementById('edit-name').value = decodeURIComponent(name);
             document.getElementById('edit-email').value = decodeURIComponent(email);
             document.getElementById('edit-password').value = decodeURIComponent(password);
-            document.getElementById('edit-role').value = decodeURIComponent(role).toLowerCase();
+            document.getElementById('edit-phone').value = decodeURIComponent(phone);
+            document.getElementById('edit-role').value = decodeURIComponent(role);
+            
             document.getElementById('edit-modal').style.display = 'flex';
         }
     </script>

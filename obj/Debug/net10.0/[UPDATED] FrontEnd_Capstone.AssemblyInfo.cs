@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("[UPDATED] FrontEnd_Capstone")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d369d37a1efa1039ca62b7fc50b170d78e991d58")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2c8bf0c6eb30c8f07e4a1549f79e1adb63623678")]
 [assembly: System.Reflection.AssemblyProductAttribute("[UPDATED] FrontEnd_Capstone")]
 [assembly: System.Reflection.AssemblyTitleAttribute("[UPDATED] FrontEnd_Capstone")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

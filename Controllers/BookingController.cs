@@ -36,7 +36,7 @@ public async Task<IActionResult> TourDiscovery(string? search, string? landscape
             (t.Description != null && t.Description.ToLower().Contains(searchLower))
         );
     }
-
+    
     if (!string.IsNullOrEmpty(landscape))
     {
         query = query.Where(t => t.LandscapeType == landscape);
@@ -99,14 +99,14 @@ public async Task<IActionResult> TourDiscovery(string? search, string? landscape
             
         if (tour == null) return NotFound();
 
-        // 2. Kalkulahin ang totoong slots na puno na (Validated status lang)
+        // 2. Calculate validated slots
         int actualSlotsFilled = tour.Bookings != null 
             ? tour.Bookings.Where(b => b.Status == "Validated").Sum(b => b.Slots) 
             : 0;
 
         int availableSeats = tour.TotalCapacity - actualSlotsFilled;
 
-        // 3. I-block kung ang gustong i-book ay mas marami kaysa sa natitirang slots
+        
         if (slots > availableSeats)
         {
             ViewBag.Tour = tour;
@@ -130,7 +130,7 @@ public async Task<IActionResult> TourDiscovery(string? search, string? landscape
             Slots = slots, 
             TotalAmount = totalAmount,
             Status = "Pending Validation",
-            BookedAt = DateTime.Now // <--- Properly initialized BookedAt timestamp
+            BookedAt = DateTime.Now 
         };
 
         _context.Set<Booking>().Add(newRecord);
@@ -140,7 +140,7 @@ public async Task<IActionResult> TourDiscovery(string? search, string? landscape
         ViewBag.ReferenceNumber = trackingReference;
         ViewBag.TourName = tour.TourName;
         ViewBag.TotalPaid = totalAmount;
-        ViewBag.TotalAmount = totalAmount; // <--- Siguraduhing maipapasa ang eksaktong total amount dito para mabasa ng confirmation view
+        ViewBag.TotalAmount = totalAmount; 
         
         ViewBag.Tour = tour;
         return View("Booking-confirmation", tour);
@@ -159,7 +159,7 @@ public async Task<IActionResult> Status(int id)
         return NotFound();
     }
 
-    // Kalkulahin ang dynamic slots filled mula sa mga validated o confirmed bookings para sa tour na ito
+    
     int slotsFilled = await _context.Bookings
         .Where(b => b.TourId == booking.TourId && (b.Status == "Validated" || b.Status == "Confirmed" || b.Status == "Approved"))
         .SumAsync(b => 1 + (string.IsNullOrEmpty(b.CompanionNames) ? 0 : b.CompanionNames.Split(',').Length));

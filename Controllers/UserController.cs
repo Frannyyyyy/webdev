@@ -50,7 +50,7 @@ namespace _UPDATED__FrontEnd_Capstone.Controllers
                 Age = age,
                 Password = password,
                 Role = role.ToLower().Trim(),
-                Status = "Active" // Active na agad kapag admin ang gumawa
+                Status = "Active" 
             };
 
             _context.Users.Add(newUser);
@@ -59,25 +59,28 @@ namespace _UPDATED__FrontEnd_Capstone.Controllers
             return RedirectToAction(nameof(UserManagement));
         }
 
-        // POST: /User/EditUser
-        [HttpPost]
-        public async Task<IActionResult> EditUser(int id, string fullName, string email, string password, string role)
-        {
-            var user = await _context.Users.FindAsync(id);
-            if (user != null)
-            {
-                user.FullName = fullName?.Trim();
-                user.Email = email?.ToLower().Trim();
-                user.Password = password;
-                user.Role = role?.ToLower().Trim();
+      
 
-                _context.Update(user);
-                await _context.SaveChangesAsync();
-            }
+// POST: /User/EditUser
+[HttpPost]
+public async Task<IActionResult> EditUser(User updatedUser)
+{
+    var existingUser = await _context.Users.FindAsync(updatedUser.Id);
 
-            return RedirectToAction(nameof(UserManagement));
-        }
+    if (existingUser != null)
+    {
+        existingUser.FullName = updatedUser.FullName;
+        existingUser.Email = updatedUser.Email;
+        existingUser.PhoneNumber = updatedUser.PhoneNumber;
+        existingUser.Password = updatedUser.Password;
+        existingUser.Role = updatedUser.Role; // Papasok dito kung Admin o Operator ang pinili sa dropdown
 
+        _context.Users.Update(existingUser);
+        await _context.SaveChangesAsync();
+    }
+
+    return RedirectToAction(nameof(UserManagement));
+}
         // POST: /User/ApproveUser
         [HttpPost]
         public async Task<IActionResult> ApproveUser(int id)

@@ -1,22 +1,28 @@
 using Microsoft.EntityFrameworkCore;
 using _UPDATED__FrontEnd_Capstone.Models;
+using _UPDATED__FrontEnd_Capstone.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-// Register the Database Context using the official Oracle MySQL driver
+// Register the Database 
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySQL(connectionString));
 
-// >>> ILAGAY MO DITO ANG GEMINI SERVICE REGISTRATION <<<
+//email service
+builder.Services.AddScoped<IEmailService, EmailService>();
+
+//background service
+builder.Services.AddHostedService<TourNotificationBackgroundService>();
+
 builder.Services.AddHttpClient<GeminiService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");

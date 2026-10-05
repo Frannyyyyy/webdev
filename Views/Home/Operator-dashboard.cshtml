@@ -2,7 +2,7 @@
 @{
     Layout = null;
     var allTours = Model ?? Enumerable.Empty<_UPDATED__FrontEnd_Capstone.Models.Tour>();
-    var activeTours = allTours.Where(x => x.Status != "Archived" && !x.IsComplete && !x.IsCancelled).ToList();
+    var activeTours = allTours.Where(x => string.Equals(x.Status, "Active", StringComparison.OrdinalIgnoreCase)).ToList();
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -132,9 +132,10 @@
             transition: width 0.4s ease;
             width: 0%;
         }
+        /* Color Mapping: High = Green, Med = Yellow, Low = Red */
         .bar-high { background-color: var(--status-go); box-shadow: 0 0 8px rgba(34, 197, 94, 0.4); }
-        .bar-med { background-color: #f97316; box-shadow: 0 0 8px rgba(249, 115, 22, 0.4); }
-        .bar-low { background-color: var(--status-watch); box-shadow: 0 0 8px rgba(234, 179, 8, 0.4); }
+        .bar-med { background-color: var(--status-watch); box-shadow: 0 0 8px rgba(234, 179, 8, 0.4); }
+        .bar-low { background-color: var(--status-nogo); box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }
     </style>
 </head>
 <body>
@@ -190,7 +191,7 @@
 
             <!-- INDIVIDUAL TOUR BOOKING VELOCITY BARS -->
             <div style="margin-top: 32px;">
-                <h3 class="heading-md" style="margin-bottom: 16px;"> Tour Fill Rate & Velocity Performance</h3>
+                <h3 class="heading-md" style="margin-bottom: 16px;">Tour Fill Rate & Velocity Performance</h3>
                 <div class="velocity-graph-container" id="velocity-container">
                     @if (activeTours != null && activeTours.Any())
                     {
@@ -311,26 +312,27 @@
 
                         // Fill rate calculation based on booking velocity vs total capacity
                         let fillRate = (velocity / capacity) * 100;
-                        let barWidth = Math.min(Math.max(fillRate, 0), 100); // Limit between 0% and 100%
+                        let barWidth = Math.min(Math.max(fillRate, 0), 100);
 
-                        // I-update ang bawat specific tour bar at label
                         let barElem = document.getElementById('graph-bar-@t.Id');
                         let labelElem = document.getElementById('graph-label-@t.Id');
 
                         if (barElem && labelElem) {
                             barElem.style.width = barWidth + '%';
-                            labelElem.innerText = `${velocity} slots/day (${fillRate.toFixed(1)}% fill rate)`;
 
-                            // Lagyan ng color coding base sa bilis ng fill rate performance
-                            if (fillRate >= 30) {
-                                barElem.className = 'graph-bar bar-high';
+                            // TAMA NA: 70%+ = High (Green), 31% - 69% = Medium (Yellow), 0% - 30% = Low (Red)
+                            if (fillRate >= 70) {
+                                barElem.className = 'graph-bar bar-high'; // Green
+                                labelElem.innerText = `${velocity} slots/day (${fillRate.toFixed(1)}% fill rate) - [HIGH]`;
                                 labelElem.style.color = 'var(--status-go)';
-                            } else if (fillRate >= 10) {
-                                barElem.className = 'graph-bar bar-med';
-                                labelElem.style.color = '#f97316';
-                            } else {
-                                barElem.className = 'graph-bar bar-low';
+                            } else if (fillRate >= 31) {
+                                barElem.className = 'graph-bar bar-med'; // Yellow
+                                labelElem.innerText = `${velocity} slots/day (${fillRate.toFixed(1)}% fill rate) - [MEDIUM]`;
                                 labelElem.style.color = 'var(--status-watch)';
+                            } else {
+                                barElem.className = 'graph-bar bar-low'; // Red
+                                labelElem.innerText = `${velocity} slots/day (${fillRate.toFixed(1)}% fill rate) - [LOW]`;
+                                labelElem.style.color = 'var(--status-nogo)';
                             }
                         }
                     })

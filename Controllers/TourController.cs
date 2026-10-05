@@ -18,7 +18,7 @@ public class TourController : Controller
         _context = context;
         _geminiService = geminiService; 
     }
-    
+     
     // --- BOOKING QUEUE ---
     [HttpGet]
     [Route("User/BookingQueue")]
@@ -80,10 +80,24 @@ public async Task<IActionResult> BookingHistory()
 [HttpPost]
 public async Task<IActionResult> ApproveBooking(int id)
 {
-    var booking = await _context.Bookings.FindAsync(id);
+    var booking = await _context.Bookings
+        .Include(b => b.Tour)
+        .FirstOrDefaultAsync(b => b.Id == id);
+        
     if (booking == null) 
     {
         return Json(new { success = false, message = "Booking not found." });
+    }
+
+    var tour = booking.Tour;
+    if (tour != null && (tour.SlotsFilled + booking.Slots > tour.TotalCapacity))
+    {
+        return Json(new { success = false, message = "Hindi na ma-approve ang booking dahil puno na ang mga slots ng tour na ito!" });
+    }
+
+    if (tour != null)
+    {
+        tour.SlotsFilled += booking.Slots;
     }
 
     booking.Status = "Validated";
@@ -199,8 +213,8 @@ public async Task<IActionResult> CalculateNetPayables()
         // Low: 1% to 35%
         // Medium: 36% to 70%
         // High: 71% to 100% (Kasama na rito ang 3 out of 4 o 75%)
-        var activeTours = tours.Where(x => x.Status != "Archived" && !x.IsCancelled).ToList();
-
+        var activeTours = tours.Where(x => x.Status != null && x.Status.Trim().Equals("Active", StringComparison.OrdinalIgnoreCase)).ToList();
+    
         var lowRiskList = new List<string>();
         var medRiskList = new List<string>();
         var highRiskList = new List<string>();
@@ -591,35 +605,33 @@ public async Task<IActionResult> RestoreTour(int id)
     }
 
     
-    // --- AI GENERATION ENDPOINT ---
-    [HttpPost]
-    [Route("Tour/GenerateTourWithAI")]
-    public async Task<IActionResult> GenerateTourWithAI([FromBody] PromptDto request)
+    // --- AUTOMATED GENERATION ENDPOINT ---
+[HttpPost]
+[Route("Tour/GenerateTourWithAI")]
+public async Task<IActionResult> GenerateTourWithAI([FromBody] AiPromptRequest request)
+{
+    if (request == null || string.IsNullOrEmpty(request.Prompt))
     {
-        if (string.IsNullOrEmpty(request?.Prompt))
-        {
-            return BadRequest(new { success = false, message = "Wala kang inilagay na prompt." });
-        }
-
-        try
-        {
-            var jsonResult = await _geminiService.GenerateTourDataAsync(request.Prompt);
-            
-            if (string.IsNullOrEmpty(jsonResult))
-            {
-                return StatusCode(500, new { success = false, message = "Nabigong kumuha ng data mula kay Gemini." });
-            }
-
-            return Content(jsonResult, "application/json");
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { success = false, message = ex.Message });
-        }
+        return BadRequest(new { message = "Prompt is required." });
     }
 
-    public class PromptDto
+    try
     {
-        public string Prompt { get; set; }
+        // Gemini service called
+        string jsonResponse = await _geminiService.GenerateTourDataAsync(request.Prompt);
+        
+        // returns raw  json from gemini
+        return Content(jsonResponse, "application/json");
     }
+    catch (Exception ex)
+    {
+        return StatusCode(500, new { message = ex.Message });
+    }
+}
+
+
+public class AiPromptRequest
+{
+    public string Prompt { get; set; }
+}
 }
